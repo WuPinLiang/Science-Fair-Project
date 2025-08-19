@@ -1,17 +1,161 @@
-# Science-Fair-Project
+# Science Fair Project
 
-- `notebooks/MicroProcessor.ipynb`: your training notebook (add your file here)
-- `weights/weights.h, weights/weights.c`: auto-generated from uploaded txt parameters (float)
-- `include/`, `src/`: minimal C inference program (8x8 bitmap -> hidden -> output)
+本專案展示了一個完整的流程，從機器學習模型的訓練到嵌入式環境的部署，最終實現了手寫數字辨識。它結合了 Python 進行模型建立與訓練，以及 C 語言進行模型推論的實作，並使用簡單的輸入測試圖樣驗證模型的效能。這樣的專案不僅僅是一個科展作品，更可以視為「人工智慧模型嵌入式化」的一個縮影。
 
-## Build & Run
+---
+
+## 研究背景
+
+人工智慧的快速發展讓深度學習模型能夠廣泛應用於影像辨識、語音處理以及自然語言理解。然而，這些模型的運算需求通常相當龐大，需要高效能的 GPU 或雲端運算環境才能即時執行。這導致在資源有限的嵌入式系統上，要直接部署深度學習模型變得困難重重。
+
+另一方面，隨著物聯網 (IoT)、可攜式裝置與邊緣運算的發展，將人工智慧模型部署到低功耗、低記憶體的微處理器或單晶片系統，變得日益重要。這樣的能力可以帶來許多應用：
+
+* 智慧手環或穿戴裝置中的即時健康監測
+* 工業檢測中對瑕疵產品的即時辨識
+* 智慧家庭裝置的即時語音或手勢辨識
+* 自駕車感測器中輕量化模型的即時推論
+
+因此，本專案的核心問題就是：**如何將一個在電腦上訓練好的神經網路，轉換為可在微處理器上執行的程式？**
+
+---
+
+## 研究目的
+
+1. 建立一個簡單的神經網路模型，用於手寫數字辨識。
+2. 訓練模型，並將權重與偏差值導出為文字檔案。
+3. 將導出的權重轉換為 C 語言陣列，使其能夠編譯進嵌入式應用程式中。
+4. 撰寫 C 程式碼，實作 forward propagation 與 ReLU 函式，模擬模型推論過程。
+5. 透過 8×8 的簡化影像測試輸入，驗證程式能夠正確輸出結果。
+6. 探索人工智慧模型在低資源環境中的可行性，並評估其未來應用可能。
+
+---
+
+## 方法與流程
+
+### 1. 模型設計與訓練
+
+在 Python Notebook 中設計了一個兩層的全連接神經網路：
+
+* **輸入層**：處理簡化的手寫數字影像資料。
+* **隱藏層 (Hidden Layer)**：使用 ReLU 作為啟用函式，以提升模型的非線性能力。
+* **輸出層 (Output Layer)**：輸出 0–9 的分數，並透過 argmax 選出最終預測結果。
+
+### 2. 權重與偏差的導出
+
+訓練完成後，將四個部分輸出為文字檔案：
+
+* Hidden Bias
+* Hidden Weight
+* Output Bias
+* Output Weight
+
+這些文字檔案放在 `weights_raw/` 中，方便檢查與後續轉換。
+
+### 3. 權重轉換
+
+撰寫 Python 腳本將文字檔案轉換為 C 語言陣列，生成 `weights/weights.c` 與 `weights/weights.h`。如此一來，C 程式可以直接引用這些權重，而不需要額外的檔案 I/O。
+
+### 4. C 語言實作
+
+C 程式的主要流程包括：
+
+* 讀取輸入影像（此處以硬編碼的 8×8 測試圖案表示）
+* 計算隱藏層輸出：`hidden_node[i] = ReLU(sum + bias)`
+* 計算輸出層分數：`output_node[i] = ReLU(sum + bias)`
+* 找出最大值輸出，即為預測數字
+
+### 5. 測試與驗證
+
+使用簡單的 8×8 二值化圖形進行測試，程式會以 `#` 與 `.` 輸出輸入圖形，並列印各層計算結果與最終辨識出的數字。
+
+---
+
+## 實驗成果
+
+1. **正確性**：程式能在給定的測試圖形上正確辨識數字，顯示轉換後的模型在 C 語言環境中仍能正常運行。
+2. **可攜性**：程式與權重皆能移植至其他環境，甚至是微處理器或模擬環境中執行。
+3. **展示價值**：完整展示了從 Python 訓練到 C 語言部署的流程，對於學習人工智慧與嵌入式系統結合的學生與研究者具有教學價值。
+4. **限制**：由於模型規模小，準確率無法與大型深度學習模型相比；然而，這正好凸顯了「輕量化模型」在嵌入式應用上的需求。
+
+---
+
+## 專案內容
+
+* `notebooks/MicroProcessor.ipynb`：模型訓練與權重導出，可在 Google Colab 執行
+* `src/`、`include/`：C 語言程式碼，包含推論邏輯與工具函式
+* `weights_raw/`：原始模型權重（TXT 檔）
+* `weights/`：轉換後的 C 語言陣列權重，供程式編譯使用
+
+---
+
+## 使用方式
+
+### 開啟 Notebook
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WuPinLiang/Science-Fair-Project/blob/main/notebooks/MicroProcessor.ipynb)
+
+### 編譯與執行
+
+在專案根目錄執行：
+
 ```bash
+make clean
 make
-make run
+./build/demo
 ```
 
-## Files auto-generated from your uploads
-- Hidden_Bias: 18 values
-- Hidden_Weight: 1152 values (expected 18 * 64)
-- Output_Bias: 10 values
-- Output_Weight: 180 values (expected 10 * 18)
+輸出內容包括：
+
+* 輸入影像的 8×8 視覺化輸出
+* 隱藏層的計算結果
+* 每個數字 (0–9) 的分數
+* 模型最終預測的數字
+
+---
+
+## 專案結構
+
+```
+Science-Fair-Project/
+├── notebooks/          # 訓練 Notebook
+├── weights_raw/        # 原始權重 (TXT)
+├── weights/            # 編譯用權重 (C 陣列)
+├── src/                # C 原始碼
+├── include/            # 標頭檔
+├── Makefile
+├── README.md
+└── .gitignore
+```
+
+---
+
+## 研究意義與未來展望
+
+這個專案雖然僅以手寫數字辨識作為展示，但它的價值不僅限於此。它代表了一種「將 AI 模型輕量化並實際部署」的實作方法，未來可以延伸到更多場景：
+
+* **穿戴式裝置**：如智慧手環中的心率監測與異常偵測
+* **工業 IoT**：在生產線上即時進行瑕疵品檢測
+* **智慧家庭**：低功耗裝置上的語音或手勢控制
+* **邊緣運算**：在無法連網的環境下進行即時 AI 推論
+
+未來可以進一步探討：
+
+1. 使用更高效的量化方法，例如將權重從 32-bit 浮點數壓縮為 8-bit 整數，以節省記憶體與運算資源。
+2. 嘗試不同的網路架構，如卷積神經網路 (CNN)，並透過裁剪與壓縮讓其能在嵌入式環境執行。
+3. 在實體微處理器或 FPGA 上進行實驗，驗證理論與模擬結果的一致性。
+4. 開發更自動化的流程，例如一鍵將 TensorFlow/PyTorch 模型轉換為嵌入式 C 程式碼。
+
+---
+
+## 注意事項
+
+* 權重更新時，需將新檔案放入 `weights_raw/`，再使用轉換腳本生成新的 `weights/weights.c` 與 `weights/weights.h`。
+* 本專案的程式碼與模型僅用於學術與展示用途，不適用於商業部署。
+* 請勿將私密資訊（如 GitHub Token、SSH 金鑰）上傳到版本控制系統。
+
+---
+
+## 總結
+
+本專案完整呈現了人工智慧模型如何從訓練走向部署，並解釋了在嵌入式環境應用 AI 的挑戰與方法。雖然模型簡單，但它成功展示了 AI 在低資源平台上的實際可行性，並為後續研究與應用提供了可參考的基礎。這是一個結合機器學習、程式設計與嵌入式應用的跨領域實作，對於教育、展示以及啟發後續研究均具有意義。
+
