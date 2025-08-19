@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TinyML‑DigitRecognizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TinyML digit recognition on microcontrollers — training in Python, inference in C.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="container">
+    <h1>TinyML‑DigitRecognizer</h1>
+    <p class="subtitle">Train in Python · Infer in C · Run on constrained devices</p>
+    <nav class="actions">
+      <a class="btn" href="https://github.com/WuPinLiang/TinyML-DigitRecognizer" target="_blank" rel="noopener">GitHub Repo</a>
+      <a class="btn" href="https://colab.research.google.com/github/WuPinLiang/TinyML-DigitRecognizer/blob/main/notebooks/MicroProcessor.ipynb" target="_blank" rel="noopener">Open in Colab</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>Try the 8×8 Samples</h2>
+      <p>Select a digit to load its 8×8 bitmap (from <code>samples/&lt;digit&gt;.txt</code>) and render it below.</p>
+
+      <div class="picker" id="digit-buttons"></div>
+
+      <div class="grid-wrap">
+        <div>
+          <h3>Bitmap Grid</h3>
+          <div id="grid" class="grid"></div>
+        </div>
+        <div>
+          <h3>Raw Text</h3>
+          <pre id="raw" class="raw"></pre>
+        </div>
+      </div>
+
+      <p class="note">
+        This page renders the 8×8 sample files directly from your repository.
+        Inference here is not executed in the browser; run the C demo locally:
+      </p>
+      <pre class="code">make && ./build/demo samples/3.txt</pre>
+    </section>
+
+    <section class="panel">
+      <h2>About</h2>
+      <p>
+        This project demonstrates a minimal end‑to‑end pipeline for TinyML:
+        train a small neural network for digit recognition in Python/Colab,
+        export weights/biases, convert them to C arrays, and run inference in C
+        as if on a microcontroller.
+      </p>
+      <ul>
+        <li><strong>Training:</strong> <code>notebooks/MicroProcessor.ipynb</code></li>
+        <li><strong>Raw weights:</strong> <code>weights_raw/</code></li>
+        <li><strong>C arrays:</strong> <code>weights/weights.c</code>, <code>weights/weights.h</code></li>
+        <li><strong>Inference code:</strong> <code>src/</code>, <code>include/</code></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <span>MIT Licensed.</span>
+    <span>© 2025 TinyML‑DigitRecognizer</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
