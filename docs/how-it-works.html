@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TinyML‑DigitRecognizer · How it works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="container">
+    <h1>How it works</h1>
+    <p class="subtitle">From training in Python to inference in C</p>
+    <nav class="actions">
+      <a class="btn" href="./index.html">Home</a>
+      <a class="btn" href="https://github.com/WuPinLiang/TinyML-DigitRecognizer" target="_blank" rel="noopener">GitHub Repo</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>Pipeline</h2>
+      <ol>
+        <li>Train a small MLP in <code>notebooks/MicroProcessor.ipynb</code> (Colab).</li>
+        <li>Export four text files: Hidden_Bias, Hidden_Weight, Output_Bias, Output_Weight into <code>weights_raw/</code>.</li>
+        <li>Convert to C arrays using <code>python3 scripts/convert_weights.py</code> → <code>weights/weights.c,h</code>.</li>
+        <li>Compile the C inference demo: <code>make</code>.</li>
+        <li>Run with an example: <code>./build/demo samples/3.txt</code>.</li>
+      </ol>
+    </section>
+
+    <section class="panel">
+      <h2>Model</h2>
+      <pre class="raw">
+Input: 8×8 binary → flatten to 64
+Hidden: size = HIDDEN_SIZE, activation = ReLU
+Output: size = 10, activation = ReLU (argmax for prediction)
+y = ReLU(Wo · ReLU(Wh · x + bh) + bo)
+      </pre>
+    </section>
+
+    <section class="panel">
+      <h2>Reproducibility</h2>
+      <ul>
+        <li>Update weights: <code>python3 scripts/convert_weights.py && make clean && make</code></li>
+        <li>Try all samples: <code>for f in samples/*.txt; do ./build/demo "$f"; done</code></li>
+        <li>CI checks build + a smoke test on every push.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <span>MIT Licensed.</span>
+    <span>© 2025 TinyML‑DigitRecognizer</span>
+  </footer>
+</body>
+</html>

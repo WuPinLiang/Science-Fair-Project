@@ -1,4 +1,5 @@
 # TinyML-DigitRecognizer
+Project website: https://WuPinLiang.github.io/TinyML-DigitRecognizer/
 
 This project demonstrates a complete pipeline from **training a neural network model** to **deploying it on a microcontroller-like environment**, ultimately achieving handwritten digit recognition. It combines Python (for training and parameter export) with C (for inference), showing how AI can be embedded in resource-constrained systems. This is not only a science fair project but also a practical example of **TinyML**.
 
