@@ -25,7 +25,7 @@ async function loadDigit(digit, btn) {
   btn.classList.add('active');
 
   // samples folder is one level up from docs/ (Pages root is docs/)
-  const url = `../samples/${digit}.txt`;
+  const url = `samples/${digit}.txt?v=ts`;
   try {
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
