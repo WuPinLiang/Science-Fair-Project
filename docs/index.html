@@ -25,37 +25,57 @@
       <div class="picker" id="digit-buttons"></div>
 
       <div class="grid-wrap">
-        <div>
+        <div class="grid-section">
           <h3>Bitmap Grid</h3>
           <div id="grid" class="grid"></div>
         </div>
-        <div>
+        <div class="raw-section">
           <h3>Raw Text</h3>
           <pre id="raw" class="raw"></pre>
         </div>
       </div>
 
-      <p class="note">
-        This page renders the 8×8 sample files directly from your repository.
-        Inference here is not executed in the browser; run the C demo locally:
-      </p>
-      <pre class="code">make && ./build/demo samples/3.txt</pre>
+      <div class="note-wrap">
+        <p class="note">
+          This page renders the 8×8 sample files directly from your repository.<br>
+          Inference here is <strong>not executed in the browser</strong>; run the C demo locally:
+        </p>
+        <pre class="code">make && ./build/demo samples/3.txt</pre>
+      </div>
     </section>
 
     <section class="panel">
       <h2>About</h2>
       <p>
-        This project demonstrates a minimal end‑to‑end pipeline for TinyML:
-        train a small neural network for digit recognition in Python/Colab,
-        export weights/biases, convert them to C arrays, and run inference in C
-        as if on a microcontroller, which I choose 8051.
+        This project demonstrates a minimal end‑to‑end pipeline for TinyML:<br>
+        <ul>
+          <li>Train a small neural network for digit recognition in Python/Colab</li>
+          <li>Export weights and biases</li>
+          <li>Convert them into C arrays</li>
+          <li>Run inference in C as if on a microcontroller (chosen target: 8051)</li>
+        </ul>
       </p>
-      <ul>
-        <li><strong>Training:</strong> <code>notebooks/MicroProcessor.ipynb</code></li>
-        <li><strong>Raw weights:</strong> <code>weights_raw/</code></li>
-        <li><strong>C arrays:</strong> <code>weights/weights.c</code>, <code>weights/weights.h</code></li>
-        <li><strong>Inference code:</strong> <code>src/</code>, <code>include/</code></li>
-      </ul>
+      <div class="project-structure">
+        <h3>Project Structure</h3>
+        <ul>
+          <li><strong>Training:</strong> <code>notebooks/MicroProcessor.ipynb</code></li>
+          <li><strong>Raw weights:</strong> <code>weights_raw/</code></li>
+          <li><strong>C arrays:</strong> <code>weights/weights.c</code>, <code>weights/weights.h</code></li>
+          <li><strong>Inference code:</strong> <code>src/</code>, <code>include/</code></li>
+          <li><strong>Samples:</strong> <code>samples/</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How It Works</h2>
+      <ol>
+        <li>Prepare 8×8 digit samples (<code>samples/&lt;digit&gt;.txt</code>)</li>
+        <li>Run the training notebook in Colab to generate weights</li>
+        <li>Transform weights into <code>C</code> arrays</li>
+        <li>Compile and run inference on device</li>
+      </ol>
+      <p class="note">This approach highlights how machine learning models can be distilled into minimal forms that fit on constrained devices.</p>
     </section>
   </main>
 
@@ -64,7 +84,7 @@
     <span>© 2025 TinyML‑DigitRecognizer</span>
   </footer>
 
-  <script src="app.js?v=4"""></script>
+  <script src="app.js?v=4"></script>
   <script src="app.v6.js?v=6"></script>
 </body>
 </html>
