@@ -1,70 +1,268 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="utf-8">
-  <title>TinyML‑DigitRecognizer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="TinyML digit recognition on microcontrollers — training in Python, inference in C.">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TinyML‑DigitRecognizer · Train in Python · Infer in C</title>
+  <meta name="description" content="從 Python 訓練到 C 推論的 TinyML 數字辨識專案：在資源受限裝置上執行的端側 AI 範例。" />
+  <meta property="og:title" content="TinyML‑DigitRecognizer" />
+  <meta property="og:description" content="Train in Python · Infer in C · Run on constrained devices" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://wupinliang.github.io/TinyML-DigitRecognizer/" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <style>
+    :root{
+      --bg: #0b0c10;
+      --panel:#111318;
+      --text:#e8eaed;
+      --muted:#a9b0bb;
+      --brand:#0ea5e9;
+      --ring:#22d3ee;
+      --card:#0e1116;
+      --code:#0b1220;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --err:#ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f6f8fb; --panel:#ffffff; --text:#0f172a; --muted:#5b6472;
+        --card:#ffffff; --code:#0f172a0d; --shadow:0 12px 24px rgba(2,6,23,.08);
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Arial,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+    a{color:var(--brand);text-decoration:none} a:hover{text-decoration:underline}
+    .container{max-width:1024px;margin:0 auto;padding:32px 20px}
+    .nav{position:sticky;top:0;backdrop-filter:saturate(180%) blur(8px);background:color-mix(in oklab, var(--bg) 75%, transparent);border-bottom:1px solid color-mix(in oklab, var(--text) 12%, transparent);z-index:50}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;max-width:1100px;margin:0 auto}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid color-mix(in oklab,var(--text) 15%, transparent);border-radius:999px;background:color-mix(in oklab,var(--panel) 90%, transparent);color:var(--text);font-size:13px}
+    .row{display:grid;grid-template-columns:1.25fr .9fr;gap:24px}
+    @media (max-width:960px){.row{grid-template-columns:1fr}}
+    .hero{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+    .hero h1{font-size: clamp(28px, 3.4vw, 44px); line-height:1.15; margin:0}
+    .hero p{margin:0;color:var(--muted)}
+    .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid color-mix(in oklab,var(--text) 18%, transparent);background:linear-gradient(180deg,color-mix(in oklab,var(--panel) 92%, transparent), color-mix(in oklab,var(--panel) 80%, transparent));color:var(--text);box-shadow:var(--shadow)}
+    .btn:hover{transform:translateY(-1px)}
+    .card{background:var(--card);border:1px solid color-mix(in oklab,var(--text) 10%, transparent);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .card h3{margin-top:0}
+    .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}
+    @media (max-width:720px){.kpi{grid-template-columns:repeat(2,1fr)}}
+    .kpi .item{background:var(--panel);border:1px solid color-mix(in oklab,var(--text) 10%, transparent);border-radius:14px;padding:14px;text-align:center}
+    .muted{color:var(--muted)}
+    .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Noto Sans Mono CJK TC",monospace}
+    pre,code{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Noto Sans Mono CJK TC",monospace}
+    pre{background:var(--code);color:var(--text);padding:14px;border-radius:12px;overflow:auto;border:1px solid color-mix(in oklab,var(--text) 10%, transparent)}
+    .grid-8{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+    .pix{width:100%;aspect-ratio:1;border-radius:6px;background:#0f172a22;border:1px solid color-mix(in oklab,var(--text) 14%, transparent)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .input, select{background:var(--panel);border:1px solid color-mix(in oklab,var(--text) 18%, transparent);color:var(--text);padding:8px 10px;border-radius:10px}
+    .copy{cursor:pointer}
+    .table{width:100%;border-collapse:separate;border-spacing:0;background:var(--panel);border:1px solid color-mix(in oklab,var(--text) 10%, transparent);border-radius:14px;overflow:hidden}
+    .table th,.table td{padding:10px 12px;border-bottom:1px solid color-mix(in oklab,var(--text) 10%, transparent);text-align:left}
+    .table th{background:color-mix(in oklab,var(--panel) 96%, transparent);font-weight:700}
+    .table tr:last-child td{border-bottom:0}
+    .footer{margin-top:32px;padding:24px 0;border-top:1px dashed color-mix(in oklab,var(--text) 16%, transparent);color:var(--muted)}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:color-mix(in oklab,var(--brand) 14%, transparent);border:1px solid color-mix(in oklab,var(--brand) 30%, transparent)}
+    details{border:1px solid color-mix(in oklab,var(--text) 12%, transparent);border-radius:12px;padding:10px 12px;background:color-mix(in oklab,var(--panel) 96%, transparent)}
+    details+details{margin-top:10px}
+    summary{cursor:pointer;font-weight:700}
+    .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--err)}
+  </style>
 </head>
 <body>
-  <header class="container">
-    <h1>TinyML‑DigitRecognizer</h1>
-    <p class="subtitle">Train in Python · Infer in C · Run on constrained devices</p>
-    <nav class="actions">
-      <a class="btn" href="https://github.com/WuPinLiang/TinyML-DigitRecognizer" target="_blank" rel="noopener">GitHub Repo</a>
-      <a class="btn" href="https://colab.research.google.com/github/WuPinLiang/TinyML-DigitRecognizer/blob/main/notebooks/MicroProcessor.ipynb" target="_blank" rel="noopener">Open in Colab</a>
-    </nav>
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="brand">🔢 <span>TinyML‑DigitRecognizer</span></div>
+      <div class="cta">
+        <a class="badge" href="https://github.com/WuPinLiang/TinyML-DigitRecognizer" target="_blank" rel="noopener">GitHub</a>
+        <a class="badge" href="https://colab.research.google.com/github/WuPinLiang/TinyML-DigitRecognizer/blob/main/notebooks/MicroProcessor.ipynb" target="_blank" rel="noopener">Open in Colab</a>
+        <a class="badge" href="#try">Samples</a>
+        <a class="badge" href="#usage">使用方式</a>
+        <a class="badge" href="#deploy">部署到 C</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="container hero">
+    <h1>Train in Python · <span class="pill">Infer in C</span> · Run on constrained devices</h1>
+    <p>這是一個從 <b>Python 訓練</b> → <b>匯出權重</b> → <b>C 語言推論</b> 的完整 TinyML 範例；展示如何把 <span class="mono">MNIST-like 8×8</span> 位圖數字送進極小模型並在微控制器情境推論。</p>
+    <div class="kpi">
+      <div class="item"><div class="muted">模型</div><div class="mono">2-layer FC + ReLU</div></div>
+      <div class="item"><div class="muted">輸入維度</div><div class="mono">8×8 → 64</div></div>
+      <div class="item"><div class="muted">推論端</div><div class="mono">C / 8051 風格</div></div>
+      <div class="item"><div class="muted">授權</div><div class="mono">MIT</div></div>
+    </div>
   </header>
 
   <main class="container">
-    <section class="panel">
-      <h2>Try the 8×8 Samples</h2>
-      <p>Select a digit to load its 8×8 bitmap (from <code>samples/&lt;digit&gt;.txt</code>) and render it below.</p>
+    <div class="row">
+      <!-- Left column: About & How it works -->
+      <section class="card">
+        <h3 id="about">專案說明</h3>
+        <p>此專案提供最小可行、可讀性高的端側 AI 範例：於 <span class="mono">notebooks/MicroProcessor.ipynb</span> 訓練一個小型全連接網路，將 <b>Hidden/Output 的 Weights 與 Bias</b> 以純文字匯出（<span class="mono">weights_raw/</span>），再轉換成 C 可 include 的陣列（<span class="mono">weights/weights.c</span>, <span class="mono">weights/weights.h</span>），最後在 <span class="mono">src/</span> 以 C 完成前向推論與 Argmax 預測。Repo 結構見下。<span class="muted">（路徑來源：你的倉庫目錄）</span></p>
+        <table class="table">
+          <thead><tr><th>資料夾 / 檔案</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td><a href="../notebooks" target="_blank" rel="noopener">notebooks/</a></td><td>訓練與匯出權重（Colab 友善）</td></tr>
+            <tr><td><a href="../weights_raw" target="_blank" rel="noopener">weights_raw/</a></td><td>純文字權重（Hidden Bias/Weight、Output Bias/Weight）</td></tr>
+            <tr><td><a href="../weights" target="_blank" rel="noopener">weights/</a></td><td>C 語言可 include 的權重陣列</td></tr>
+            <tr><td><a href="../src" target="_blank" rel="noopener">src/</a>、<a href="../include" target="_blank" rel="noopener">include/</a></td><td>前向推論、ReLU、Argmax 等程式</td></tr>
+            <tr><td><a href="../samples" target="_blank" rel="noopener">samples/</a></td><td>8×8 測試樣本（純文字）</td></tr>
+            <tr><td><a href="../Makefile" target="_blank" rel="noopener">Makefile</a></td><td>建置與執行</td></tr>
+          </tbody>
+        </table>
 
-      <div class="picker" id="digit-buttons"></div>
+        <details>
+          <summary>模型與訓練（簡述）</summary>
+          <ul>
+            <li>架構：<span class="mono">FC(64 → H)</span> + ReLU → <span class="mono">FC(H → 10)</span> + Argmax</li>
+            <li>輸入：8×8 位圖（0/1 或 0–255）展平成 64 維</li>
+            <li>匯出：四份參數 <span class="mono">Hidden Bias / Hidden Weight / Output Bias / Output Weight</span>（放於 <span class="mono">weights_raw/</span>）</li>
+            <li>轉換：產生 <span class="mono">weights/weights.c, weights.h</span> 供 C 端 include 使用</li>
+          </ul>
+        </details>
 
-      <div class="grid-wrap">
-        <div>
-          <h3>Bitmap Grid</h3>
-          <div id="grid" class="grid"></div>
+        <details>
+          <summary>為何選擇 C 端推論？</summary>
+          <p>在微控制器（MCU）或類 8051 的資源受限環境，將簡單 NN 以純 C 實作可得到最小依賴、最佳可攜性，並且能更直觀地示範「訓練在 PC/Colab、推論在裝置」的 TinyML 思維。</p>
+        </details>
+      </section>
+
+      <!-- Right column: Interactive Samples -->
+      <section class="card" id="try">
+        <h3>試玩 8×8 樣本（直接載入 <span class="mono">samples/*.txt</span>）</h3>
+        <div class="toolbar">
+          <label>選擇數字：
+            <select id="digitSelect">
+              <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+              <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            </select>
+          </label>
+          <button class="btn" id="loadBtn">載入樣本</button>
+          <button class="btn" id="copyBtn">複製原始文字</button>
         </div>
-        <div>
-          <h3>Raw Text</h3>
-          <pre id="raw" class="raw"></pre>
-        </div>
-      </div>
+        <div class="grid-8" id="grid"></div>
+        <h4>Raw Text</h4>
+        <pre id="raw" class="mono muted">（按「載入樣本」讀取 <span class="mono">samples/&lt;digit&gt;.txt</span>）</pre>
+        <p class="muted">此頁面 <b>不在瀏覽器執行推論</b>；如要跑 C 範例請見下段命令。</p>
+      </section>
+    </div>
 
-      <p class="note">
-        This page renders the 8×8 sample files directly from your repository.
-        Inference here is not executed in the browser; run the C demo locally:
-      </p>
-      <pre class="code">make && ./build/demo samples/3.txt</pre>
+    <!-- Usage -->
+    <section class="card" id="usage">
+      <h3>快速開始</h3>
+      <ol>
+        <li><b>Colab 訓練（可選）</b>：<a href="https://colab.research.google.com/github/WuPinLiang/TinyML-DigitRecognizer/blob/main/notebooks/MicroProcessor.ipynb" target="_blank" rel="noopener">開啟 Notebook</a> 並執行到匯出權重。</li>
+        <li><b>本機建置</b>（需 gcc/clang）：</li>
+      </ol>
+      <pre class="mono">make clean
+make
+./build/demo samples/3.txt</pre>
+      <p class="muted">輸出將顯示 8×8 圖樣、隱藏層/輸出層計算結果，以及最終的 <b>Argmax 預測</b>。</p>
     </section>
 
-    <section class="panel">
-      <h2>About</h2>
-      <p>
-        This project demonstrates a minimal end‑to‑end pipeline for TinyML:
-        train a small neural network for digit recognition in Python/Colab,
-        export weights/biases, convert them to C arrays, and run inference in C
-        as if on a microcontroller, which I choose 8051.
-      </p>
+    <!-- Deploy to C -->
+    <section class="card" id="deploy">
+      <h3>將權重佈署到 C 推論端</h3>
+      <ol>
+        <li>確認已在 <span class="mono">weights_raw/</span> 生成四個檔案：<span class="mono">Hidden Bias</span>、<span class="mono">Hidden Weight</span>、<span class="mono">Output Bias</span>、<span class="mono">Output Weight</span>。</li>
+        <li>執行轉換腳本（依你的 <span class="mono">scripts/</span> 或 Notebook 流程）。</li>
+        <li>於 <span class="mono">src/</span> 的前向推論程式 <span class="mono">#include "weights/weights.h"</span>，並確保連結 <span class="mono">weights/weights.c</span>。</li>
+      </ol>
+      <details>
+        <summary>常見問題</summary>
+        <p><b>Q1. 四個權重檔都要放嗎？</b> 要的。FC 結構同時依賴權重與偏置；少任一組都會導致輸出錯誤或崩潰。</p>
+        <p><b>Q2. 我想在瀏覽器直接推論？</b> 此專案刻意保持「C 端推論」的單純性。若要 Web 推論，可以另建 <span class="mono">WebAssembly</span> 或 <span class="mono">ONNX Runtime Web</span> 分支。</p>
+      </details>
+    </section>
+
+    <!-- Results / Notes -->
+    <section class="card">
+      <h3>結果與限制</h3>
       <ul>
-        <li><strong>Training:</strong> <code>notebooks/MicroProcessor.ipynb</code></li>
-        <li><strong>Raw weights:</strong> <code>weights_raw/</code></li>
-        <li><strong>C arrays:</strong> <code>weights/weights.c</code>, <code>weights/weights.h</code></li>
-        <li><strong>Inference code:</strong> <code>src/</code>, <code>include/</code></li>
+        <li class="ok">✅ 易讀易改：以最少依賴展示端側推論流程。</li>
+        <li class="ok">✅ 可攜：權重即陣列，任意 C 專案皆可 include。</li>
+        <li class="warn">⚠️ 模型小、未量化：精度有限，建議視需求加入量化/剪枝。</li>
       </ul>
+      <table class="table">
+        <thead><tr><th>方向</th><th>下一步</th></tr></thead>
+        <tbody>
+          <tr><td>效能</td><td>8-bit 量化、剪枝、快取友善記憶體版面</td></tr>
+          <tr><td>模型</td><td>測試更小 CNN 或 MobileNet 與蒐集自製資料</td></tr>
+          <tr><td>部署</td><td>實機 MCU / FPGA；產生 CMSIS-NN / TFLM 版本</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="footer">
+      <div>MIT Licensed · © 2025 TinyML‑DigitRecognizer</div>
+      <div class="muted">Repo：<a href="https://github.com/WuPinLiang/TinyML-DigitRecognizer" target="_blank" rel="noopener">WuPinLiang/TinyML‑DigitRecognizer</a></div>
     </section>
   </main>
 
-  <footer class="container footer">
-    <span>MIT Licensed.</span>
-    <span>© 2025 TinyML‑DigitRecognizer</span>
-  </footer>
+  <script>
+    // ===== Interactive Samples loader =====
+    const grid = document.getElementById('grid');
+    const raw = document.getElementById('raw');
+    const sel = document.getElementById('digitSelect');
+    const loadBtn = document.getElementById('loadBtn');
+    const copyBtn = document.getElementById('copyBtn');
 
-  <script src="app.js?v=4"""></script>
-  <script src="app.v6.js?v=6"></script>
+    // Build 8x8 placeholders
+    const drawGrid = (vals=Array(64).fill(0))=>{
+      grid.innerHTML = '';
+      vals.forEach(v=>{
+        const d = document.createElement('div');
+        d.className = 'pix';
+        const val = Number(v)||0;
+        // intensity background
+        const pct = Math.max(0, Math.min(255, val));
+        const alpha = pct/255;
+        d.style.background = `color-mix(in oklab, #22d3ee ${alpha*68}%, transparent)`;
+        d.style.borderColor = `color-mix(in oklab, var(--text) ${8+alpha*20}%, transparent)`;
+        grid.appendChild(d);
+      });
+    };
+    drawGrid();
+
+    async function loadDigit(d){
+      try{
+        const res = await fetch(`../samples/${d}.txt`, {cache:'no-store'});
+        if(!res.ok) throw new Error('not found');
+        const txt = await res.text();
+        raw.textContent = txt.trim();
+        const nums = txt.trim().split(/\s+|,|\n/).map(Number).filter(n=>!Number.isNaN(n));
+        const vals = [];
+        // Accept either 8 lines of 8 or flat 64 numbers
+        if(nums.length===64){ vals.push(...nums); }
+        else{
+          const lines = txt.trim().split(/\n/).map(s=>s.trim()).filter(Boolean);
+          lines.forEach(line=>{
+            const row = line.split(/\s+|,/).map(Number).filter(n=>!Number.isNaN(n));
+            vals.push(...row);
+          });
+        }
+        while(vals.length<64) vals.push(0);
+        drawGrid(vals.slice(0,64));
+      }catch(err){
+        raw.textContent = `⚠️ 找不到 samples/${d}.txt，請確認檔案存在於 repo。`;
+        drawGrid(Array(64).fill(0));
+      }
+    }
+
+    loadBtn.addEventListener('click', ()=> loadDigit(sel.value));
+    copyBtn.addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(raw.textContent);
+        copyBtn.textContent = '已複製 ✅';
+        setTimeout(()=>copyBtn.textContent='複製原始文字', 1200);
+      }catch(e){ alert('無法複製：' + e.message); }
+    });
+  </script>
 </body>
 </html>
