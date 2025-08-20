@@ -1,314 +1,90 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TinyML‑DigitRecognizer · Playground</title>
-  <meta name="description" content="從 Python 訓練到 C 推論的 TinyML 數字辨識專案：互動展示、樣本載入、8×8 編輯與匯出。" />
-  <meta name="theme-color" content="#7aa2f7" />
-  <!--
-    使用方式：
-    1) 將本檔案直接覆蓋到您的 repo 的 docs/index.html。
-    2) 本頁面自帶 CSS/JS，無需其他檔案即可執行；同時仍能載入 ../samples/*.txt。
-    3) 如要改回分離式檔案（style.css / app.js），我可以再給對應版本。
-  -->
-  <style>
-    :root{
-      --bg:#0b0e14; --fg:#e6e1cf; --muted:#a6accd; --brand:#7aa2f7; --panel:#11151f; --border:#1f2430; --accent:#8bd5ca;
-      --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --shadow:0 12px 28px rgba(0,0,0,.35); --radius:16px;
-    }
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#f6f8fb; --fg:#111827; --muted:#5b6472; --panel:#ffffff; --border:#e5e7eb; --accent:#10b981; --brand:#2563eb; --shadow:0 12px 28px rgba(2,6,23,.08) }
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";line-height:1.6}
-    a{color:var(--brand);text-decoration:none} a:hover{text-decoration:underline}
-    .container{max-width:1000px;margin:0 auto;padding:24px}
-    header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(180%) blur(8px);background:color-mix(in oklab, var(--bg) 82%, transparent);border-bottom:1px solid color-mix(in oklab,var(--fg) 12%, transparent)}
-    .h-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1060px;margin:0 auto;padding:14px 20px}
-    .title{display:flex;align-items:center;gap:10px;font-weight:800}
-    .subtitle{color:var(--muted);font-size:14px}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#121826,#0e1420);box-shadow:var(--shadow)}
-    .btn:hover{border-color:var(--brand);box-shadow:0 0 0 2px #1a2333 inset,var(--shadow);transform:translateY(-1px)}
-    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in oklab,var(--accent) 16%, transparent);border:1px solid color-mix(in oklab,var(--accent) 36%, transparent)}
-    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin:18px 0;box-shadow:var(--shadow)}
-    .panel h2{margin-top:0}
-    .grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
-    @media (max-width:860px){.grid-2{grid-template-columns:1fr}}
-    .picker{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;margin:12px 0 16px}
-    .picker button{padding:10px 0;background:#0f1623;color:var(--fg);border:1px solid var(--border);border-radius:10px;cursor:pointer}
-    .picker button.active{outline:2px solid var(--accent);border-color:var(--accent)}
-    .grid{width:320px;height:320px;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);background:#0f1623;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-    .cell{border:1px solid #151b28;transition:background-color .08s ease}
-    .raw{background:#0f1623;border:1px solid var(--border);border-radius:8px;padding:10px;min-height:320px;overflow:auto}
-    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-    .input,select{background:#0f1623;border:1px solid var(--border);color:var(--fg);padding:8px 10px;border-radius:10px}
-    .note{color:var(--muted)}
-    .footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:14px}
-    .dropzone{display:flex;align-items:center;justify-content:center;min-height:60px;border:1px dashed color-mix(in oklab,var(--fg) 26%, transparent);border-radius:12px;padding:10px;color:var(--muted)}
-    .toggle{cursor:pointer}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono";background:#0f1623;border:1px solid var(--border);border-radius:6px;padding:2px 6px}
-    @media (max-width:760px){.grid{width:100%;height:auto;aspect-ratio:1/1}}
-  </style>
+  <meta charset="utf-8">
+  <title>TinyML‑DigitRecognizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TinyML digit recognition on microcontrollers — training in Python, inference in C.">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <div class="h-inner">
-      <div class="title">🔢 TinyML‑DigitRecognizer <span class="subtitle">Train in Python · <span class="pill">Infer in C</span> · Run on constrained devices</span></div>
-      <nav class="actions">
-        <a class="btn" href="https://github.com/WuPinLiang/TinyML-DigitRecognizer" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn" href="https://colab.research.google.com/github/WuPinLiang/TinyML-DigitRecognizer/blob/main/notebooks/MicroProcessor.ipynb" target="_blank" rel="noopener">Open in Colab</a>
-        <button id="themeBtn" class="btn toggle" title="切換主題">Theme</button>
-      </nav>
-    </div>
+  <header class="container">
+    <h1>TinyML‑DigitRecognizer</h1>
+    <p class="subtitle">Train in Python · Infer in C · Run on constrained devices</p>
+    <nav class="actions">
+      <a class="btn" href="https://github.com/WuPinLiang/TinyML-DigitRecognizer" target="_blank" rel="noopener">GitHub Repo</a>
+      <a class="btn" href="https://colab.research.google.com/github/WuPinLiang/TinyML-DigitRecognizer/blob/main/notebooks/MicroProcessor.ipynb" target="_blank" rel="noopener">Open in Colab</a>
+    </nav>
   </header>
 
   <main class="container">
     <section class="panel">
-      <h2>試玩 8×8 樣本</h2>
-      <p>從 repository 載入 <code>../samples/&lt;digit&gt;.txt</code>，或拖拉本機檔案到下方區域。你也可以在右側直接編輯 8×8 網格並匯出純文字。</p>
+      <h2>Try the 8×8 Samples</h2>
+      <p>Select a digit to load its 8×8 bitmap (from <code>samples/&lt;digit&gt;.txt</code>) and render it below.</p>
 
-      <div class="picker" id="digitButtons"></div>
+      <div class="picker" id="digit-buttons"></div>
 
-      <div class="grid-2">
-        <!-- Left: sample viewer -->
-        <div>
-          <h3>Bitmap Grid（檢視/繪製）</h3>
-          <div class="toolbar">
-            <label>顯示模式：
-              <select id="vizMode">
-                <option value="binary">二值（0/1）</option>
-                <option value="heat">強度（0–255 漸層）</option>
-              </select>
-            </label>
-            <label>閾值（for 二值）：
-              <input type="range" id="thresh" min="1" max="254" value="128" />
-              <span id="threshVal" class="kbd">128</span>
-            </label>
-            <button class="btn" id="clearBtn">Clear</button>
-            <button class="btn" id="invertBtn">Invert</button>
-            <button class="btn" id="randomBtn">Random</button>
-            <button class="btn" id="copyBtn">Copy Text</button>
-            <button class="btn" id="downloadBtn">Download .txt</button>
-          </div>
-          <div id="grid" class="grid" aria-label="8x8 可編輯網格" role="grid"></div>
-          <p class="note">小技巧：按住 <span class="kbd">Shift</span> 可持續塗抹；按住 <span class="kbd">Alt/Option</span> 反向塗抹。</p>
+      <div class="grid-wrap">
+        <div class="grid-section">
+          <h3>Bitmap Grid</h3>
+          <div id="grid" class="grid"></div>
         </div>
-
-        <!-- Right: raw text + dropzone -->
-        <div>
+        <div class="raw-section">
           <h3>Raw Text</h3>
-          <pre id="raw" class="raw">（從左側載入或在網格上繪製後，這裡會顯示 64 個數字）</pre>
-          <div id="drop" class="dropzone">拖放 <code>.txt</code> 檔案到這裡以載入（接受 8 行 × 8 列或 64 個數字）</div>
+          <pre id="raw" class="raw"></pre>
         </div>
       </div>
 
-      <p class="note">這個頁面<strong>不在瀏覽器做推論</strong>；如要在 C 端跑 demo：</p>
-      <pre class="raw">make && ./build/demo samples/3.txt</pre>
+      <div class="note-wrap">
+        <p class="note">
+          This page renders the 8×8 sample files directly from your repository.<br>
+          Inference here is <strong>not executed in the browser</strong>; run the C demo locally:
+        </p>
+        <pre class="code">make && ./build/demo samples/3.txt</pre>
+      </div>
     </section>
 
     <section class="panel">
       <h2>About</h2>
-      <p>這個專案展示如何將在 Python/Colab 訓練的小型 NN（例如：FC(64→H) + ReLU → FC(H→10)）的權重，轉換為 C 陣列並在資源受限裝置推論。</p>
-      <ul>
-        <li><strong>Training：</strong><code>notebooks/MicroProcessor.ipynb</code></li>
-        <li><strong>Raw weights：</strong><code>weights_raw/</code>（Hidden/Output 的 Weights & Bias）</li>
-        <li><strong>C arrays：</strong><code>weights/weights.c</code>、<code>weights/weights.h</code></li>
-        <li><strong>Inference code：</strong><code>src/</code>、<code>include/</code></li>
-        <li><strong>Samples：</strong><code>samples/</code>（8×8 純文字）</li>
-      </ul>
+      <p>
+        This project demonstrates a minimal end‑to‑end pipeline for TinyML:<br>
+        <ul>
+          <li>Train a small neural network for digit recognition in Python/Colab</li>
+          <li>Export weights and biases</li>
+          <li>Convert them into C arrays</li>
+          <li>Run inference in C as if on a microcontroller (chosen target: 8051)</li>
+        </ul>
+      </p>
+      <div class="project-structure">
+        <h3>Project Structure</h3>
+        <ul>
+          <li><strong>Training:</strong> <code>notebooks/MicroProcessor.ipynb</code></li>
+          <li><strong>Raw weights:</strong> <code>weights_raw/</code></li>
+          <li><strong>C arrays:</strong> <code>weights/weights.c</code>, <code>weights/weights.h</code></li>
+          <li><strong>Inference code:</strong> <code>src/</code>, <code>include/</code></li>
+          <li><strong>Samples:</strong> <code>samples/</code></li>
+        </ul>
+      </div>
     </section>
 
     <section class="panel">
-      <h2>下一步</h2>
-      <ul>
-        <li>🧮 量化/剪枝：8‑bit 量化、稀疏化、常數折疊。</li>
-        <li>🚀 效能：快取友善陣列、迴圈展開、SIMD（若硬體支援）。</li>
-        <li>🧱 部署：轉 WebAssembly 在頁面做推論、或產生 CMSIS‑NN / TFLM 版本。</li>
-      </ul>
+      <h2>How It Works</h2>
+      <ol>
+        <li>Prepare 8×8 digit samples (<code>samples/&lt;digit&gt;.txt</code>)</li>
+        <li>Run the training notebook in Colab to generate weights</li>
+        <li>Transform weights into <code>C</code> arrays</li>
+        <li>Compile and run inference on device</li>
+      </ol>
+      <p class="note">This approach highlights how machine learning models can be distilled into minimal forms that fit on constrained devices.</p>
     </section>
   </main>
 
   <footer class="container footer">
-    <span>MIT Licensed</span>
+    <span>MIT Licensed.</span>
     <span>© 2025 TinyML‑DigitRecognizer</span>
   </footer>
 
-  <script>
-    // ===== Utilities =====
-    const $ = (sel, el=document) => el.querySelector(sel);
-    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-
-    // Theme toggle (persist in localStorage)
-    const themeBtn = $('#themeBtn');
-    const THEME_KEY = 'tdr-theme';
-    function setTheme(mode){
-      document.documentElement.dataset.theme = mode;
-      localStorage.setItem(THEME_KEY, mode);
-    }
-    (function(){
-      const saved = localStorage.getItem(THEME_KEY);
-      if(saved) setTheme(saved);
-      themeBtn.addEventListener('click', ()=>{
-        const cur = document.documentElement.dataset.theme || 'auto';
-        setTheme(cur === 'light' ? 'dark' : cur === 'dark' ? 'auto' : 'light');
-        themeBtn.textContent = 'Theme: ' + (document.documentElement.dataset.theme||'auto');
-      });
-      themeBtn.textContent = 'Theme: ' + (document.documentElement.dataset.theme||'auto');
-    })();
-
-    // ===== 8x8 Board State =====
-    // 以 0..255 的強度表示；binary 模式下用 threshold 決定 on/off
-    let values = new Array(64).fill(0);
-    const grid = $('#grid');
-    const raw = $('#raw');
-    const vizMode = $('#vizMode');
-    const thresh = $('#thresh');
-    const threshVal = $('#threshVal');
-
-    function renderGrid(){
-      grid.innerHTML = '';
-      values.forEach((val, idx)=>{
-        const d = document.createElement('div');
-        d.className = 'cell';
-        // 視覺：二值或漸層
-        const v = clamp(Number(val)||0, 0, 255);
-        if(vizMode.value === 'binary'){
-          d.style.background = (v >= Number(thresh.value)) ? 'var(--accent)' : 'transparent';
-        }else{
-          d.style.background = `color-mix(in oklab, var(--accent) ${v/255*100}%, transparent)`;
-        }
-        d.setAttribute('role','gridcell');
-        d.setAttribute('aria-label', `r${Math.floor(idx/8)+1}c${idx%8+1}`);
-        grid.appendChild(d);
-      });
-    }
-
-    function renderRaw(){
-      // 以 8 行 × 8 列輸出；保持原值 0..255
-      let out = '';
-      for(let r=0;r<8;r++){
-        const row = values.slice(r*8, r*8+8).map(x=>String(clamp(Number(x)||0,0,255))).join(' ');
-        out += row + (r<7?'\n':'');
-      }
-      raw.textContent = out;
-    }
-
-    function sync(){ renderGrid(); renderRaw(); }
-
-    // 初始建立 cell + 繪圖互動
-    let drawing = false; let drawTo = 255; // 目標值
-    function updateCellAtEvent(e, forceValue){
-      const rect = grid.getBoundingClientRect();
-      const size = rect.width; // 因為是正方形
-      const cellW = size / 8; const cellH = (rect.height) / 8;
-      const x = clamp(Math.floor((e.clientX - rect.left) / cellW), 0, 7);
-      const y = clamp(Math.floor((e.clientY - rect.top) / cellH), 0, 7);
-      const i = y*8 + x;
-      const alt = e.altKey || e.metaKey; // 反向
-      const val = (typeof forceValue === 'number') ? forceValue : (alt ? 0 : drawTo);
-      values[i] = val;
-      sync();
-    }
-
-    grid.addEventListener('pointerdown', e=>{ drawing = true; grid.setPointerCapture(e.pointerId); updateCellAtEvent(e); });
-    grid.addEventListener('pointermove', e=>{ if(drawing || e.shiftKey) updateCellAtEvent(e); });
-    grid.addEventListener('pointerup', e=>{ drawing = false; });
-    grid.addEventListener('pointerleave', ()=>{ drawing = false; });
-
-    // 控制項
-    thresh.addEventListener('input', ()=>{ threshVal.textContent = thresh.value; renderGrid(); });
-    vizMode.addEventListener('change', renderGrid);
-    $('#clearBtn').addEventListener('click', ()=>{ values.fill(0); sync(); });
-    $('#invertBtn').addEventListener('click', ()=>{ values = values.map(v=>255 - (Number(v)||0)); sync(); });
-    $('#randomBtn').addEventListener('click', ()=>{ values = values.map(()=> Math.random()<0.5 ? 0 : 255); sync(); });
-    $('#copyBtn').addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(raw.textContent); }catch{} });
-    $('#downloadBtn').addEventListener('click', ()=>{
-      const blob = new Blob([raw.textContent], {type:'text/plain'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'digit_8x8.txt'; a.click(); URL.revokeObjectURL(a.href);
-    });
-
-    // 數字按鈕與樣本載入
-    const digitButtons = $('#digitButtons');
-    for(let d=0; d<=9; d++){
-      const b = document.createElement('button');
-      b.textContent = d; b.className = 'btn';
-      b.addEventListener('click', ()=> loadSample(d));
-      digitButtons.appendChild(b);
-    }
-
-    async function fetchWithFallback(path){
-      // 先試 docs/ 相對的 ../samples，再試 ./samples
-      const tries = [path, path.replace('../','./')];
-      for(const url of tries){
-        try{
-          const res = await fetch(url, {cache:'no-store'});
-          if(res.ok) return await res.text();
-        }catch(e){ /* ignore and try next */ }
-      }
-      throw new Error('not found');
-    }
-
-    async function loadSample(d){
-      // 嘗試載入數字樣本
-      try{
-        const txt = await fetchWithFallback(`../samples/${d}.txt`);
-        const nums = txt.trim().split(/\s+|,|\n/).map(Number).filter(n=>!Number.isNaN(n));
-        let vals = [];
-        if(nums.length===64){ vals = nums; }
-        else {
-          const lines = txt.trim().split(/\n/).map(s=>s.trim()).filter(Boolean);
-          for(const line of lines){
-            const row = line.split(/\s+|,/).map(Number).filter(n=>!Number.isNaN(n));
-            vals.push(...row);
-          }
-        }
-        while(vals.length<64) vals.push(0);
-        values = vals.slice(0,64).map(v=> clamp(Number(v)||0, 0, 255));
-        // 預設二值視覺顯示
-        vizMode.value = 'binary';
-        sync();
-        // 高亮當前按鈕
-        $$('#digitButtons .btn').forEach((el,i)=> el.classList.toggle('active', i===Number(d)) );
-      }catch(err){
-        raw.textContent = `⚠️ 找不到 samples/${d}.txt。請確認檔案存在 repo（docs/ 相對路徑應為 ../samples/${d}.txt）。`;
-      }
-    }
-
-    // 拖放載入
-    const drop = $('#drop');
-    ;['dragenter','dragover'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.style.background = 'color-mix(in oklab, var(--accent) 12%, transparent)'; }));
-    ;['dragleave','drop'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.style.background = 'transparent'; }));
-    drop.addEventListener('drop', e=>{
-      const file = e.dataTransfer.files?.[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const txt = String(reader.result||'');
-          const nums = txt.trim().split(/\s+|,|\n/).map(Number).filter(n=>!Number.isNaN(n));
-          let vals = [];
-          if(nums.length===64){ vals = nums; }
-          else{
-            const lines = txt.trim().split(/\n/).map(s=>s.trim()).filter(Boolean);
-            for(const line of lines){
-              const row = line.split(/\s+|,/).map(Number).filter(n=>!Number.isNaN(n));
-              vals.push(...row);
-            }
-          }
-          while(vals.length<64) vals.push(0);
-          values = vals.slice(0,64).map(v=> clamp(Number(v)||0, 0, 255));
-          sync();
-        }catch(err){ raw.textContent = '⚠️ 檔案格式無法解析。請提供 64 個數字或 8 行 × 8 列數字。'; }
-      };
-      reader.readAsText(file);
-    });
-
-    // 初始化
-    sync();
-  </script>
+  <script src="app.js?v=4"></script>
+  <script src="app.v6.js?v=6"></script>
 </body>
 </html>
